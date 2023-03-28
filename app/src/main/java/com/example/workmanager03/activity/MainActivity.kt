@@ -3,8 +3,8 @@ package com.example.workmanager03.activity
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.work.*
-import com.example.workmanager03.worker.MyWorker
 import com.example.workmanager03.databinding.ActivityMainBinding
+import com.example.workmanager03.worker.MyWorker
 import java.util.concurrent.TimeUnit
 
 class MainActivity : AppCompatActivity() {
@@ -62,6 +62,17 @@ class MainActivity : AppCompatActivity() {
     private fun cancelTask() {
         WorkManager.getInstance(this).cancelAllWork()
     }
+
+//    private fun runService(){
+//        val manager = getSystemService(LOCATION_SERVICE) as LocationManager
+//        if (!manager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
+//            //buildAlertMessageNoGps()
+//        } else {
+//            Intent(applicationContext, LocationService::class.java).apply {
+//                startService(this)
+//            }
+//        }
+//    }
 
     companion object{
         const val WORK_TAG = "my_work"
