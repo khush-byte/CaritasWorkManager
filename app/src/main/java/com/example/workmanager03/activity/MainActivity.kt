@@ -25,7 +25,7 @@ import java.util.concurrent.TimeUnit
 
 
 class MainActivity : AppCompatActivity() {
-    lateinit var binding: ActivityMainBinding
+    private lateinit var binding: ActivityMainBinding
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -40,14 +40,15 @@ class MainActivity : AppCompatActivity() {
                 if (!manager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
                     buildAlertMessageNoGps()
                 } else {
-                    if (checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
-                        if (Build.VERSION.SDK_INT >= 33) {
+                    if (Build.VERSION.SDK_INT >= 33) {
+                        if (checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
                             askNotificationPermission()
+                        }else{
+                            myOneTimeWork()
                         }
                     } else {
                         myOneTimeWork()
                     }
-
                 }
             }
 
@@ -56,9 +57,11 @@ class MainActivity : AppCompatActivity() {
                 if (!manager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
                     buildAlertMessageNoGps()
                 } else {
-                    if (checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
-                        if (Build.VERSION.SDK_INT >= 33) {
+                    if (Build.VERSION.SDK_INT >= 33) {
+                        if (checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
                             askNotificationPermission()
+                        }else{
+                            periodicTask()
                         }
                     } else {
                         periodicTask()
@@ -75,7 +78,7 @@ class MainActivity : AppCompatActivity() {
     private fun myOneTimeWork() {
         val constraints = Constraints.Builder()
             .setRequiredNetworkType(NetworkType.NOT_REQUIRED)
-            .setRequiresCharging(true)
+            .setRequiresCharging(false)
             .build()
 
         val myWorkRequest: WorkRequest = OneTimeWorkRequest.Builder(MyWorker::class.java)
