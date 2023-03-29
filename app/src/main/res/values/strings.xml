@@ -1,3 +1,6 @@
 <resources>
     <string name="app_name">Location Tracker TEST</string>
+    <string name="cancel_task">Cancel task</string>
+    <string name="periodic_task">Periodic task</string>
+    <string name="one_time_task">One time task</string>
 </resources>
