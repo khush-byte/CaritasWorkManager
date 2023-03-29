@@ -15,7 +15,7 @@ class MyWorker(context: Context, workerParameter: WorkerParameters) :
     Worker(context, workerParameter) {
 
     override fun doWork(): Result {
-        Log.d("MyTag", "doWork: Success")
+        Log.d(TAG, "doWork: Success")
         setNotification()
         return Result.success()
     }
@@ -39,5 +39,6 @@ class MyWorker(context: Context, workerParameter: WorkerParameters) :
         const val CHANNEL_ID = "location"
         const val CHANNEL_NAME = "Location"
         const val NOTIFICATION_ID = 1
+        const val TAG = "MyTag"
     }
 }
