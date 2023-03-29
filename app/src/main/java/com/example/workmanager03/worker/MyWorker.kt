@@ -2,6 +2,7 @@ package com.example.workmanager03.worker
 
 import android.annotation.SuppressLint
 import android.content.Context
+import android.location.Location
 import android.util.Log
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
@@ -13,6 +14,8 @@ import java.time.format.DateTimeFormatter
 
 class MyWorker(context: Context, workerParameter: WorkerParameters) :
     Worker(context, workerParameter) {
+
+    var currentLocation: Location? = null
 
     override fun doWork(): Result {
         Log.d(TAG, "doWork: Success")
@@ -26,8 +29,9 @@ class MyWorker(context: Context, workerParameter: WorkerParameters) :
         val time = LocalDateTime.now().format(formatter)
         val notification = NotificationCompat.Builder(applicationContext, "location")
             .setContentTitle("Background Task")
-            .setContentText("New task run at: $time")
-            .setSmallIcon(R.drawable.baseline_attach_file)
+            .setContentText("Location: $time (${currentLocation?.latitude.toString().take(8)}, " +
+                    "${currentLocation?.longitude.toString().take(8)})")
+            .setSmallIcon(R.drawable.baseline_my_location)
             .setAutoCancel(true)
 
         with(NotificationManagerCompat.from(applicationContext)) {
