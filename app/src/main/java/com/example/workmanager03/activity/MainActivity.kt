@@ -31,9 +31,10 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun myOneTimeWork() {
+        cancelTask()
         val constraints = Constraints.Builder()
             .setRequiredNetworkType(NetworkType.NOT_REQUIRED)
-            .setRequiresCharging(true)
+            .setRequiresCharging(false)
             .build()
 
         val myWorkRequest: WorkRequest = OneTimeWorkRequest.Builder(MyWorker::class.java)
