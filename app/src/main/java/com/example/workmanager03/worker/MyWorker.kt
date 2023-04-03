@@ -15,6 +15,9 @@ import androidx.work.*
 import com.example.workmanager03.R
 import com.google.android.gms.location.*
 import com.google.common.util.concurrent.ListenableFuture
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
@@ -29,10 +32,10 @@ class MyWorker(private val context: Context, workerParameter: WorkerParameters) 
     override fun startWork(): ListenableFuture<Result> {
         return CallbackToFutureAdapter.getFuture { completer ->
             Log.d("MyTag", "doWork: Success")
-//            CoroutineScope(Dispatchers.Main).launch {
-//                getLocation(completer)
-//            }
-            getLocation(completer)
+            CoroutineScope(Dispatchers.Main).launch {
+                currentLocation(completer)
+            }
+            //getLocation(completer)
         }
     }
 
@@ -60,7 +63,7 @@ class MyWorker(private val context: Context, workerParameter: WorkerParameters) 
         fusedLocationProviderClient =
             LocationServices.getFusedLocationProviderClient(applicationContext)
 
-        val locationRequest = LocationRequest.Builder(Priority.PRIORITY_HIGH_ACCURACY, 1000)
+        val locationRequest = LocationRequest.Builder(Priority.PRIORITY_HIGH_ACCURACY, 10000)
             .apply {
                 setWaitForAccurateLocation(false)
                 setMinUpdateIntervalMillis(500)
@@ -88,15 +91,18 @@ class MyWorker(private val context: Context, workerParameter: WorkerParameters) 
 
     @SuppressLint("MissingPermission")
     private fun getLocation(completer: CallbackToFutureAdapter.Completer<Result>) {
+        var isLocationFine= true
         locationManager = context.getSystemService(Context.LOCATION_SERVICE) as LocationManager
         locationListener = object : LocationListener {
             override fun onLocationChanged(location: Location) {
-                val loc = "${location.latitude},\n${location.longitude}"
-                Log.d("MyTag", loc)
-                newLocation = location
-                setNotification()
-                completer.set(Result.success())
-                locationManager.removeUpdates(this)
+                if(isLocationFine) {
+                    val loc = "${location.latitude},\n${location.longitude}"
+                    Log.d("MyTag", loc)
+                    newLocation = location
+                    setNotification()
+                    completer.set(Result.success())
+                    isLocationFine = false
+                }
             }
 
             @Deprecated("Deprecated in Java")
@@ -109,7 +115,7 @@ class MyWorker(private val context: Context, workerParameter: WorkerParameters) 
 
         locationManager.requestLocationUpdates(
             LocationManager.GPS_PROVIDER,
-            1000,
+            30000,
             0F,
             locationListener,
             Looper.myLooper()
