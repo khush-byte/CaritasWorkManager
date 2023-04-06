@@ -7,12 +7,17 @@ import android.location.LocationListener
 import android.location.LocationManager
 import android.os.Bundle
 import android.os.Looper
+import android.telephony.TelephonyManager
 import android.util.Log
 import androidx.concurrent.futures.CallbackToFutureAdapter
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
+import androidx.room.Room
 import androidx.work.*
 import com.example.workmanager03.R
+import com.example.workmanager03.database.LocationDao
+import com.example.workmanager03.database.LocationDatabase
+import com.example.workmanager03.database.LocationModel
 import com.google.android.gms.location.*
 import com.google.common.util.concurrent.ListenableFuture
 import kotlinx.coroutines.CoroutineScope
@@ -28,6 +33,10 @@ class MyWorker(private val context: Context, workerParameter: WorkerParameters) 
     private lateinit var locationCallback: LocationCallback
     private lateinit var locationManager: LocationManager
     private lateinit var locationListener: LocationListener
+    lateinit var locationDao: LocationDao
+    private var checkLoc: String = ""
+
+    private lateinit var phoneManager: TelephonyManager
 
     override fun startWork(): ListenableFuture<Result> {
         return CallbackToFutureAdapter.getFuture { completer ->
@@ -35,7 +44,8 @@ class MyWorker(private val context: Context, workerParameter: WorkerParameters) 
             CoroutineScope(Dispatchers.Main).launch {
                 currentLocation(completer)
             }
-            //getLocation(completer)
+//            getLocation(completer)
+//            if(LOCATION!=null) insertLocationToDatabase(LOCATION!!, getSignal())
         }
     }
 
@@ -74,10 +84,15 @@ class MyWorker(private val context: Context, workerParameter: WorkerParameters) 
             override fun onLocationResult(result: LocationResult) {
                 super.onLocationResult(result)
                 result.locations.lastOrNull()?.let { location ->
-                    Log.d(TAG, "Location: (${location.latitude}, ${location.longitude})")
+                    Log.d(
+                        TAG,
+                        "Location: (${location.latitude}, ${location.longitude}, ${getSignal()})"
+                    )
                     newLocation = location
                     setNotification()
+                    insertLocationToDatabase(location, getSignal())
                     completer.set(Result.success())
+                    stopLocationUpdates()
                 }
             }
         }
@@ -89,20 +104,21 @@ class MyWorker(private val context: Context, workerParameter: WorkerParameters) 
         )
     }
 
+    private fun stopLocationUpdates() {
+        fusedLocationProviderClient.removeLocationUpdates(locationCallback)
+    }
+
     @SuppressLint("MissingPermission")
     private fun getLocation(completer: CallbackToFutureAdapter.Completer<Result>) {
-        var isLocationFine= true
         locationManager = context.getSystemService(Context.LOCATION_SERVICE) as LocationManager
         locationListener = object : LocationListener {
             override fun onLocationChanged(location: Location) {
-                if(isLocationFine) {
-                    val loc = "${location.latitude},\n${location.longitude}"
-                    Log.d("MyTag", loc)
-                    newLocation = location
-                    setNotification()
-                    completer.set(Result.success())
-                    isLocationFine = false
-                }
+                val loc = "${location.latitude},\n${location.longitude}"
+                Log.d("MyTag", loc)
+                //newLocation = location
+                setNotification()
+                //LOCATION = location
+                completer.set(Result.success())
             }
 
             @Deprecated("Deprecated in Java")
@@ -112,14 +128,53 @@ class MyWorker(private val context: Context, workerParameter: WorkerParameters) 
             override fun onProviderEnabled(provider: String) {}
             override fun onProviderDisabled(provider: String) {}
         }
+        //Looper.myLooper()?.quit()
+        try {
+            locationManager.requestLocationUpdates(
+                LocationManager.GPS_PROVIDER,
+                10000,
+                0F,
+                locationListener,
+                Looper.getMainLooper()
+            )
+            //locationManager.requestSingleUpdate(LocationManager.GPS_PROVIDER, locationListener, Looper.getMainLooper())
+        } catch (e: SecurityException) {
+            Log.d("MyTag", e.toString())
+        }
+    }
 
-        locationManager.requestLocationUpdates(
-            LocationManager.GPS_PROVIDER,
-            30000,
-            0F,
-            locationListener,
-            Looper.myLooper()
-        )
+    private fun insertLocationToDatabase(location: Location, signal: Int) {
+        CoroutineScope(Dispatchers.IO).launch {
+            val db = Room.databaseBuilder(
+                applicationContext,
+                LocationDatabase::class.java, "location_database"
+            ).build()
+            locationDao = db.locationDao()
+
+            val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
+            val currentTime: String = LocalDateTime.now().format(formatter)
+            val currentLocation =
+                "${location.latitude.toString().take(7)},${location.longitude.toString().take(7)}"
+
+            if (currentLocation != checkLoc) {
+                locationDao.insertLocation(
+                    LocationModel(
+                        0,
+                        currentTime,
+                        location.latitude.toString().take(8),
+                        location.longitude.toString().take(8),
+                        location.altitude.toString().take(7),
+                        signal
+                    )
+                )
+                checkLoc = currentLocation
+            }
+        }
+    }
+
+    private fun getSignal(): Int {
+        phoneManager = context.getSystemService(Context.TELEPHONY_SERVICE) as TelephonyManager
+        return phoneManager.signalStrength?.getGsmSignalStrength() ?: 0
     }
 
     companion object {
@@ -127,5 +182,6 @@ class MyWorker(private val context: Context, workerParameter: WorkerParameters) 
         const val CHANNEL_NAME = "Location"
         const val NOTIFICATION_ID = 1
         const val TAG = "MyTag"
+        //var LOCATION: Location? = null
     }
 }
