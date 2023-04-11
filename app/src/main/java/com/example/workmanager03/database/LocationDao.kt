@@ -13,9 +13,6 @@ interface LocationDao {
     @Query("SELECT * FROM location_table LIMIT 1")
     suspend fun getLocation(): LocationModel
 
-    @Query("SELECT * FROM location_table ORDER BY ID DESC LIMIT 1")
-    suspend fun getPreviousLocation(): LocationModel
-
     @Update
     suspend fun updateLocation(locationModel: LocationModel)
 

@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import android.app.ActivityManager
 import android.content.Context
 import android.content.Intent
+import android.content.SharedPreferences
 import android.location.Location
 import android.location.LocationManager
 import android.telephony.TelephonyManager
@@ -35,10 +36,12 @@ class MyWorker(private val context: Context, workerParameter: WorkerParameters) 
     private val coroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     private lateinit var phoneManager: TelephonyManager
     lateinit var locationDao: LocationDao
+    private lateinit var sharedPreference: SharedPreferences
 
     override fun doWork(): Result {
         Log.d(TAG, "doWork: Success")
         val serviceState = isMyServiceRunning(LocationService::class.java)
+        sharedPreference = context.getSharedPreferences("LocalMemory", Context.MODE_PRIVATE)
 
         if (serviceState) {
             Log.d(
@@ -105,18 +108,22 @@ class MyWorker(private val context: Context, workerParameter: WorkerParameters) 
             val currentTime: String = LocalDateTime.now().format(formatter)
 
             var distance = -1
-            val point = Location("locationA");
+            val point = Location("locationA")
 
-            if (locationDao.getAllLocations().isNotEmpty()) {
-                point.latitude = locationDao.getPreviousLocation().latitude.toDouble();
-                point.longitude = locationDao.getPreviousLocation().longitude.toDouble();
-
-                if (LOCATION != null) {
-                    distance = LOCATION!!.distanceTo(point).toInt()
+            if (sharedPreference.getString("longitude", "") != "") {
+                val lat = sharedPreference.getString("latitude", "")
+                val long = sharedPreference.getString("longitude", "")
+                if (lat != null && long != null) {
+                    point.latitude = lat.toDouble()
+                    point.longitude = long.toDouble()
+                    Log.d(TAG, "location: ${point.latitude}, ${point.longitude}")
+                    if (LOCATION != null) {
+                        distance = LOCATION!!.distanceTo(point).toInt()
+                    }
                 }
             }
 
-            Log.d(TAG, "good: $distance")
+            Log.d(TAG, "distance: $distance")
 
             if (distance == -1) {
                 Log.d(TAG, "database updated")
@@ -145,6 +152,11 @@ class MyWorker(private val context: Context, workerParameter: WorkerParameters) 
                     )
                 }
             }
+
+            val editor = sharedPreference.edit()
+            editor.putString("longitude", LOCATION!!.longitude.toString().take(8))
+            editor.putString("latitude", LOCATION!!.latitude.toString().take(8))
+            editor.apply()
             sendLocationToServer(db.locationDao())
         }
     }
@@ -163,39 +175,41 @@ class MyWorker(private val context: Context, workerParameter: WorkerParameters) 
     }
     private fun sendNewLocation(location: LocationModel, locationDao: LocationDao){
         val response = ServiceBuilder.buildService(ApiInterface::class.java)
-        val phone = "945007706"
-        val requestModel = RequestModel(
-            md5("$phone${location.datetime}bCctS9eqoYaZl21a"),
-            location.datetime,
-            location.latitude,
-            location.longitude,
-            location.altitude,
-            location.signal,
-            phone
-        )
-        Log.i("myTAG", "$requestModel ")
+        val phone = sharedPreference.getString("phone", "") ?: ""
+        if(phone.isNotEmpty()) {
+            val requestModel = RequestModel(
+                md5("$phone${location.datetime}bCctS9eqoYaZl21a"),
+                location.datetime,
+                location.latitude,
+                location.longitude,
+                location.altitude,
+                location.signal,
+                phone
+            )
+            Log.i("myTAG", "$requestModel ")
 
-        if (CheckConnection.isOnline(context)) {
-            response.sendReq(requestModel).enqueue(
-                object : Callback<ResponseModel> {
-                    override fun onResponse(
-                        call: Call<ResponseModel>,
-                        response: Response<ResponseModel>
-                    ) {
-                        Log.d("myTag", response.body()?.status.toString())
-                        if (response.body()?.status == 200) {
-                            Log.d("myTag", "Good: $location")
-                            deleteData(location, locationDao)
-                        }else{
-                            Log.d("myTag", "Bad connection!")
+            if (CheckConnection.isOnline(context)) {
+                response.sendReq(requestModel).enqueue(
+                    object : Callback<ResponseModel> {
+                        override fun onResponse(
+                            call: Call<ResponseModel>,
+                            response: Response<ResponseModel>
+                        ) {
+                            Log.d("myTag", response.body()?.status.toString())
+                            if (response.body()?.status == 200) {
+                                Log.d("myTag", "Good: $location")
+                                deleteData(location, locationDao)
+                            } else {
+                                Log.d("myTag", "Bad connection!")
+                            }
+                        }
+
+                        override fun onFailure(call: Call<ResponseModel>, t: Throwable) {
+                            Log.d("myTag", t.toString())
                         }
                     }
-
-                    override fun onFailure(call: Call<ResponseModel>, t: Throwable) {
-                        Log.d("myTag", t.toString())
-                    }
-                }
-            )
+                )
+            }
         }
     }
 

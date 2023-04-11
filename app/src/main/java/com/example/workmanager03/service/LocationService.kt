@@ -10,6 +10,7 @@ import android.location.LocationListener
 import android.location.LocationManager
 import android.os.Bundle
 import android.os.IBinder
+import android.util.Log
 import androidx.core.app.NotificationCompat
 import com.example.workmanager03.R
 import com.example.workmanager03.worker.MyWorker
@@ -26,6 +27,7 @@ class LocationService : Service() {
     override fun onCreate() {
         super.onCreate()
         start()
+        Log.d("MyTag", "Start Service")
     }
 
     private fun start() {

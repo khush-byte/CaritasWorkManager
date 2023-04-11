@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".activity.LoginActivity">
+
+    <TextView
+        android:id="@+id/textView3"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="20dp"
+        android:text="USER AUTHORIZATION"
+        android:textSize="18sp"
+        app:layout_constraintBottom_toTopOf="@+id/constraintLayout"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.5"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/constraintLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="36dp"
+        android:layout_marginEnd="36dp"
+        android:layout_marginBottom="200dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.5"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/user_phone"
+            android:layout_width="match_parent"
+            android:layout_height="64dp"
+            android:gravity="bottom"
+            android:textColorHint="#5D6565"
+            app:hintTextColor="#9EA1A1"
+            app:layout_constraintBottom_toTopOf="@+id/user_key"
+            app:layout_constraintTop_toTopOf="parent"
+            app:passwordToggleEnabled="false">
+
+            <EditText
+                android:id="@+id/user_phone_field"
+                android:layout_width="match_parent"
+                android:layout_height="50dp"
+                android:drawableStart="@drawable/baseline_phone"
+                android:drawableLeft="@drawable/baseline_phone"
+                android:drawablePadding="10dp"
+                android:hint="Phone Number"
+                android:importantForAutofill="no"
+                android:inputType="number"
+                android:maxLength="9"
+                android:paddingStart="10dp"
+                android:paddingLeft="10dp"
+                android:paddingEnd="0dp"
+                android:paddingRight="0dp"
+                android:textColor="#454444"
+                android:textColorLink="#454444"
+                tools:ignore="SpeakableTextPresentCheck,TouchTargetSizeCheck,TouchTargetSizeCheck" />
+
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/user_key"
+            android:layout_width="match_parent"
+            android:layout_height="64dp"
+            android:gravity="bottom"
+            android:textColorHint="#5D6565"
+            app:hintTextColor="#9EA1A1"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/user_phone"
+            app:passwordToggleEnabled="false">
+
+            <EditText
+                android:id="@+id/user_key_field"
+                android:layout_width="match_parent"
+                android:layout_height="50dp"
+                android:drawableStart="@drawable/baseline_vpn_key"
+                android:drawableLeft="@drawable/baseline_vpn_key"
+                android:drawablePadding="10dp"
+                android:hint="Key Code"
+                android:importantForAutofill="no"
+                android:inputType="number"
+                android:maxLength="10"
+                android:paddingStart="10dp"
+                android:paddingLeft="10dp"
+                android:paddingEnd="0dp"
+                android:paddingRight="0dp"
+                android:textColor="#454444"
+                android:textColorLink="#454444"
+                tools:ignore="SpeakableTextPresentCheck,TouchTargetSizeCheck,TouchTargetSizeCheck" />
+
+        </com.google.android.material.textfield.TextInputLayout>
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <Button
+        android:id="@+id/btn_login"
+        style="@style/Widget.AppCompat.Button"
+        android:layout_width="154dp"
+        android:layout_height="60dp"
+        android:text="login"
+        android:textSize="16sp"
+        android:textStyle="normal"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.5"
+        app:layout_constraintHorizontal_chainStyle="spread_inside"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/constraintLayout"
+        app:layout_constraintVertical_bias="0.14999998" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>
