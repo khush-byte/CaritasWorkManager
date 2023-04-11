@@ -71,8 +71,8 @@ class LocationService : Service() {
     private val locationListener: LocationListener = object : LocationListener {
         override fun onLocationChanged(location: Location) {
             LOCATION = location
-            val loc = "${location.latitude},\n${location.longitude}"
-            Log.d("MyTag", loc)
+            //val loc = "${location.latitude},\n${location.longitude}"
+            //Log.d("MyTag", loc)
         }
 
         @Deprecated("Deprecated in Java")

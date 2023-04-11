@@ -10,11 +10,17 @@ import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
+import android.util.Log
+import android.view.View
+import android.view.inputmethod.InputMethodManager
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.work.*
 import com.example.workmanager03.databinding.ActivityMainBinding
 import com.example.workmanager03.service.LocationService
 import com.example.workmanager03.worker.MyWorker
+import java.math.BigInteger
+import java.security.MessageDigest
 import java.util.concurrent.TimeUnit
 
 
@@ -28,6 +34,8 @@ class MainActivity : AppCompatActivity() {
         askPermission()
 
         binding.apply {
+            pinBoard.visibility = View.GONE
+
             oneTimeBtn.setOnClickListener {
                 val manager = getSystemService(LOCATION_SERVICE) as LocationManager
                 if (!manager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
@@ -55,11 +63,7 @@ class MainActivity : AppCompatActivity() {
             }
 
             cancelBtn.setOnClickListener {
-                cancelTask()
-                Intent(applicationContext, LocationService::class.java).apply {
-                    action = LocationService.ACTION_STOP
-                    startService(this)
-                }
+                pinCheck()
             }
         }
     }
@@ -154,7 +158,44 @@ class MainActivity : AppCompatActivity() {
         alert.show()
     }
 
+    private fun pinCheck() {
+        binding.pinBoard.visibility = View.VISIBLE
+
+        binding.btnPinCancel.setOnClickListener {
+            binding.pinEnterField.text.clear()
+            binding.pinBoard.visibility = View.GONE
+        }
+
+        binding.btnPinOk.setOnClickListener {
+            if (binding.pinEnterField.text.isNotEmpty()) {
+                Log.d("MyTag", "${md5(binding.pinEnterField.text.toString())}, $PIN")
+                if (md5(binding.pinEnterField.text.toString()) == PIN) {
+                    cancelTask()
+                    Intent(applicationContext, LocationService::class.java).apply {
+                        action = LocationService.ACTION_STOP
+                        startService(this)
+                    }
+                    binding.pinEnterField.text.clear()
+                    binding.pinBoard.visibility = View.GONE
+                } else {
+                    Toast.makeText(this@MainActivity, "Incorrect PIN code!", Toast.LENGTH_SHORT)
+                        .show()
+                    binding.pinEnterField.text.clear()
+                }
+            } else {
+                Toast.makeText(this@MainActivity, "Enter PIN code please!", Toast.LENGTH_SHORT)
+                    .show()
+            }
+        }
+    }
+
+    private fun md5(input: String): String {
+        val md = MessageDigest.getInstance("MD5")
+        return BigInteger(1, md.digest(input.toByteArray())).toString(16).padStart(32, '0')
+    }
+
     companion object {
+        const val PIN = "eed7116087a9e84bb0609f459bdd57e0"
         const val WORK_TAG = "my_work"
     }
 }

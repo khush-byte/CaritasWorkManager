@@ -41,6 +41,7 @@ class LoginActivity : AppCompatActivity() {
                         binding.userKeyField.text.toString(),
                         applicationContext
                     )
+                    binding.btnLogin.isEnabled = false
                 } else {
                     Toast.makeText(applicationContext, "No Internet Connection!", Toast.LENGTH_LONG)
                         .show()
@@ -62,7 +63,7 @@ class LoginActivity : AppCompatActivity() {
             phone,
             key
         )
-        Log.i("myTAG", "$requestModel ")
+        Log.i("MyTag", "$requestModel ")
 
         response.sendReq(requestModel).enqueue(
             object : Callback<ResponseModel> {
@@ -70,7 +71,7 @@ class LoginActivity : AppCompatActivity() {
                     call: Call<ResponseModel>,
                     response: Response<ResponseModel>
                 ) {
-                    Log.d("myTag", response.body()?.status.toString())
+                    Log.d("MyTag", response.body()?.status.toString())
                     if (response.body()?.status == 200) {
                         Toast.makeText(context, "Authorization successful!", Toast.LENGTH_LONG)
                             .show()
@@ -85,7 +86,7 @@ class LoginActivity : AppCompatActivity() {
                 }
 
                 override fun onFailure(call: Call<ResponseModel>, t: Throwable) {
-                    Log.d("myTag", t.toString())
+                    Log.d("MyTag", t.toString())
                 }
             }
         )
