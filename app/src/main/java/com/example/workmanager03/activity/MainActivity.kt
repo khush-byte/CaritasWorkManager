@@ -82,6 +82,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun periodicTask() {
+        WorkManager.getInstance(this).cancelAllWork()
         val constraints = Constraints.Builder()
             .setRequiredNetworkType(NetworkType.NOT_REQUIRED)
             .build()
