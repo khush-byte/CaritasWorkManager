@@ -56,6 +56,7 @@ class MyWorker(private val context: Context, workerParameter: WorkerParameters) 
                 context.getSystemService(AppCompatActivity.LOCATION_SERVICE) as LocationManager
             if (manager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
                 Intent(context, LocationService::class.java).apply {
+                    action = LocationService.ACTION_START
                     context.startService(this)
                 }
             }

@@ -19,6 +19,7 @@ import com.example.workmanager03.worker.MyWorker.Companion.LOCATION
 class LocationService : Service() {
     lateinit var notification: NotificationCompat.Builder
     lateinit var notificationManager: NotificationManager
+    private lateinit var locationManager: LocationManager
 
     override fun onBind(intent: Intent?): IBinder? {
         return null
@@ -26,8 +27,15 @@ class LocationService : Service() {
 
     override fun onCreate() {
         super.onCreate()
-        start()
         Log.d("MyTag", "Start Service")
+    }
+
+    override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        when (intent?.action) {
+            ACTION_START -> start()
+            ACTION_STOP -> stop()
+        }
+        return super.onStartCommand(intent, flags, startId)
     }
 
     private fun start() {
@@ -41,9 +49,15 @@ class LocationService : Service() {
         startForeground(NOTIFICATION_ID, notification.build())
     }
 
+    private fun stop() {
+        locationManager.removeUpdates(locationListener);
+        stopForeground(true)
+        stopSelf()
+    }
+
     @SuppressLint("MissingPermission")
     private fun startTracking() {
-        val locationManager =
+        locationManager =
             applicationContext.getSystemService(LOCATION_SERVICE) as LocationManager
 
         locationManager.requestLocationUpdates(
@@ -57,18 +71,8 @@ class LocationService : Service() {
     private val locationListener: LocationListener = object : LocationListener {
         override fun onLocationChanged(location: Location) {
             LOCATION = location
-//            val loc = "${location.latitude},\n${location.longitude}"
-//            Log.d("MyTag", loc)
-//            val lat = location.latitude.toString().take(8)
-//            val long = location.longitude.toString().take(8)
-//            val formatter = DateTimeFormatter.ofPattern("HH:mm:ss")
-//            val time = LocalDateTime.now().format(formatter)
-//            val newLocation = "$lat, $long"
-//
-//            val updateNotification = notification.setContentText(
-//                "Location: $time ($newLocation)"
-//            )
-//            notificationManager.notify(2, updateNotification.build())
+            val loc = "${location.latitude},\n${location.longitude}"
+            Log.d("MyTag", loc)
         }
 
         @Deprecated("Deprecated in Java")
@@ -81,5 +85,7 @@ class LocationService : Service() {
 
     companion object {
         const val NOTIFICATION_ID = 1
+        const val ACTION_START = "ACTION_START"
+        const val ACTION_STOP = "ACTION_STOP"
     }
 }
