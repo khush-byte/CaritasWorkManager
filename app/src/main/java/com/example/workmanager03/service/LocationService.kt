@@ -43,7 +43,7 @@ class LocationService : Service() {
             .setContentTitle("Tracking location...")
             .setContentText("Location: null")
             .setSmallIcon(R.drawable.baseline_my_location)
-            .setAutoCancel(true)
+            .setOngoing(true)
         startTracking()
         notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         startForeground(NOTIFICATION_ID, notification.build())
