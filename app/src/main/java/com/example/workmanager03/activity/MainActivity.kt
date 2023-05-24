@@ -1,10 +1,12 @@
 package com.example.workmanager03.activity
 
 import android.Manifest
+import android.app.ActivityManager
 import android.app.AlertDialog
 import android.content.DialogInterface
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.graphics.Color
 import android.location.LocationManager
 import android.net.Uri
 import android.os.Build
@@ -12,7 +14,6 @@ import android.os.Bundle
 import android.provider.Settings
 import android.util.Log
 import android.view.View
-import android.view.inputmethod.InputMethodManager
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.work.*
@@ -21,6 +22,7 @@ import com.example.workmanager03.service.LocationService
 import com.example.workmanager03.worker.MyWorker
 import java.math.BigInteger
 import java.security.MessageDigest
+import java.util.concurrent.ExecutionException
 import java.util.concurrent.TimeUnit
 
 
@@ -32,9 +34,11 @@ class MainActivity : AppCompatActivity() {
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
         askPermission()
+        checkStatus()
 
         binding.apply {
             pinBoard.visibility = View.GONE
+            oneTimeBtn.visibility = View.GONE
 
             oneTimeBtn.setOnClickListener {
                 val manager = getSystemService(LOCATION_SERVICE) as LocationManager
@@ -56,6 +60,8 @@ class MainActivity : AppCompatActivity() {
                 } else {
                     if(checkSinglePermission()) {
                         periodicTask()
+                        binding.mainInfoField.text = "Программа работает\nПожалуйста, не трогайте кнопки!"
+                        binding.mainInfoField.setTextColor(Color.parseColor("#15DC43"));
                     }else{
                         askPermission()
                     }
@@ -193,6 +199,48 @@ class MainActivity : AppCompatActivity() {
     private fun md5(input: String): String {
         val md = MessageDigest.getInstance("MD5")
         return BigInteger(1, md.digest(input.toByteArray())).toString(16).padStart(32, '0')
+    }
+
+    private fun checkStatus(){
+        val serviceState = isMyServiceRunning(LocationService::class.java)
+
+        if(serviceState && isWorkScheduled(WORK_TAG)) {
+            binding.mainInfoField.text = "Программа работает\nПожалуйста, не трогайте кнопки!"
+            binding.mainInfoField.setTextColor(Color.parseColor("#15DC43"));
+        }else{
+            binding.mainInfoField.text = "Программа отключена\nНажмите кнопку СТАРТ, чтобы запустить программу!"
+            binding.mainInfoField.setTextColor(Color.parseColor("#F22727"));
+        }
+    }
+
+    private fun isWorkScheduled(tag: String): Boolean {
+        val instance = WorkManager.getInstance()
+        val statuses = instance.getWorkInfosByTag(tag)
+        return try {
+            var running = false
+            val workInfoList = statuses.get()
+            for (workInfo in workInfoList) {
+                val state = workInfo.state
+                running = (state == WorkInfo.State.RUNNING) or (state == WorkInfo.State.ENQUEUED)
+            }
+            running
+        } catch (e: ExecutionException) {
+            e.printStackTrace()
+            false
+        } catch (e: InterruptedException) {
+            e.printStackTrace()
+            false
+        }
+    }
+
+    private fun isMyServiceRunning(serviceClass: Class<*>): Boolean {
+        val manager = getSystemService(ACTIVITY_SERVICE) as ActivityManager
+        for (service in manager.getRunningServices(Int.MAX_VALUE)) {
+            if (serviceClass.name == service.service.className) {
+                return true
+            }
+        }
+        return false
     }
 
     companion object {

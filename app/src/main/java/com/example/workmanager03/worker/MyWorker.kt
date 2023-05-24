@@ -69,11 +69,12 @@ class MyWorker(private val context: Context, workerParameter: WorkerParameters) 
     private fun setNotification() {
         val formatter = DateTimeFormatter.ofPattern("HH:mm:ss")
         val time = LocalDateTime.now().format(formatter)
+        val trackerId = sharedPreference.getString("phone", "")
 
         val notification = NotificationCompat.Builder(applicationContext, CHANNEL_ID)
             .setContentTitle("Tracking location...")
             .setContentText(
-                "Location: $time (${LOCATION?.latitude.toString().take(8)}, " +
+                "Location $trackerId: $time (${LOCATION?.latitude.toString().take(8)}, " +
                         "${LOCATION?.longitude.toString().take(8)})"
             )
             .setSmallIcon(R.drawable.baseline_my_location)

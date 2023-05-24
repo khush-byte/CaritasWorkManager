@@ -50,7 +50,7 @@ class LocationService : Service() {
     }
 
     private fun stop() {
-        locationManager.removeUpdates(locationListener);
+        //locationManager.removeUpdates(locationListener);
         stopForeground(true)
         stopSelf()
     }
@@ -62,7 +62,7 @@ class LocationService : Service() {
 
         locationManager.requestLocationUpdates(
             LocationManager.GPS_PROVIDER,
-            10000,
+            30000,
             0f,
             locationListener
         )

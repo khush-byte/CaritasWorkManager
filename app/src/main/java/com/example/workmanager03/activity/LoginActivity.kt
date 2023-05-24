@@ -34,7 +34,7 @@ class LoginActivity : AppCompatActivity() {
         }
 
         binding.btnLogin.setOnClickListener {
-            if (binding.userPhoneField.text.length == 9 && binding.userKeyField.text.isNotEmpty()) {
+            if (binding.userPhoneField.text.length == 4 && binding.userKeyField.text.isNotEmpty()) {
                 if (CheckConnection.isOnline(this)) {
                     doLogin(
                         binding.userPhoneField.text.toString(),
